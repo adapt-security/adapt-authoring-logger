@@ -4,7 +4,6 @@
   "description": "Basic logger for the Adapt authoring tool",
   "main": "index.js",
   "adapt_authoring": {
-    "module": true,
     "documentation": {
       "enable": true,
       "include": "lib/*"
