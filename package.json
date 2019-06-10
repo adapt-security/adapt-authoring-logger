@@ -2,6 +2,7 @@
   "name": "adapt-authoring-logger",
   "version": "0.0.1",
   "description": "Basic logger for the Adapt authoring tool",
+  "homepage": "https://github.com/taylortom/adapt-authoring-logger",
   "main": "index.js",
   "adapt_authoring": {
     "documentation": {
