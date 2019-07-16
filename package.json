@@ -5,11 +5,10 @@
   "homepage": "https://github.com/taylortom/adapt-authoring-logger",
   "main": "index.js",
   "adapt_authoring": {
-    "utility": true,
+    "utility": "logger",
     "documentation": {
       "enable": true,
       "includes": {
-        "source": "lib/*",
         "docs": "docs/*"
       }
     }
