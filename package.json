@@ -9,6 +9,7 @@
     "documentation": {
       "enable": true,
       "includes": {
+        "source": "lib/*",
         "docs": "docs/*"
       }
     }
