@@ -4,12 +4,6 @@
   "description": "Basic logger for the Adapt authoring tool",
   "homepage": "https://github.com/taylortom/adapt-authoring-logger",
   "main": "index.js",
-  "adapt_authoring": {
-    "utility": "logger",
-    "documentation": {
-      "enable": true
-    }
-  },
   "dependencies": {
     "chalk": "2.4.1"
   },

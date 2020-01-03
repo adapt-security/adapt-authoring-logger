@@ -1,2 +1,2 @@
-const Logger = require('./lib/logger');
-module.exports = Logger;
+const LoggerModule = require('./lib/loggermodule');
+module.exports = LoggerModule;
