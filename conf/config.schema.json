@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "enabledLevels": {
+      "type": "array",
+      "description": "Which levels of log should be enabled",
+      "default": ["error", "warn", "success", "info", "debug"]
+    },
+    "showTimestamp": {
+      "type": "Boolean",
+      "description": "Whether to prepend a timestamp to each log message",
+      "default": true
+    }
+  }
+}
