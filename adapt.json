@@ -1,5 +1,5 @@
 {
-  "coreApiName": "logger",
+  "isEssential": true,
   "documentation": {
     "enable": true
   }
