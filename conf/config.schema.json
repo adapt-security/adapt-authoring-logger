@@ -12,7 +12,7 @@
       "enum": ["short", "iso"],
       "description": "The date format to use",
       "default": "iso"
-    }
+    },
     "showTimestamp": {
       "type": "boolean",
       "description": "Whether to prepend a timestamp to each log message",
