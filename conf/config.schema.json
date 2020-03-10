@@ -7,6 +7,12 @@
       "description": "Which levels of log should be enabled",
       "default": ["error", "warn", "success", "info", "debug"]
     },
+    "dateFormat": {
+      "type": "string",
+      "enum": ["short", "iso"],
+      "description": "The date format to use",
+      "default": "iso"
+    }
     "showTimestamp": {
       "type": "boolean",
       "description": "Whether to prepend a timestamp to each log message",
