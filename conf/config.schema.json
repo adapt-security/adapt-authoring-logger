@@ -5,6 +5,7 @@
     "enabledLevels": {
       "type": "array",
       "description": "Which levels of log should be enabled",
+      "items": { "type": "string" },
       "default": ["error", "warn", "success", "info", "debug"]
     },
     "dateFormat": {
