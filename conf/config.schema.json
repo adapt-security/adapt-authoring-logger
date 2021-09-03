@@ -8,6 +8,11 @@
       "items": { "type": "string" },
       "default": ["error", "warn", "success", "info", "debug"]
     },
+    "mute": {
+      "type": ["string","boolean"],
+      "description": "Whether to mute log messages",
+      "default": false
+    },
     "dateFormat": {
       "type": "string",
       "enum": ["short", "iso"],
