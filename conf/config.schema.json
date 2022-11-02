@@ -6,7 +6,7 @@
       "type": "array",
       "description": "Configures which log levels of log should be shown. Accepts generic levels, module-specific levels and not logic (e.g. 'debug', 'debug.core' and '!debug' respectively).",
       "items": { "type": "string" },
-      "default": ["error", "warn", "success", "info", "debug"]
+      "default": ["error", "warn", "success", "info"]
     },
     "mute": {
       "type": ["string","boolean"],
