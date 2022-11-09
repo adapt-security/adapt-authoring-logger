@@ -3,25 +3,25 @@
   "type": "object",
   "properties": {
     "levels": {
-      "type": "array",
       "description": "Configures which log levels of log should be shown. Accepts generic levels, module-specific levels and not logic (e.g. 'debug', 'debug.core' and '!debug' respectively).",
+      "type": "array",
       "items": { "type": "string" },
       "default": ["error", "warn", "success", "info"]
     },
     "mute": {
-      "type": ["string","boolean"],
       "description": "Whether to mute log messages",
+      "type": ["string","boolean"],
       "default": false
     },
     "dateFormat": {
+      "description": "The date format to use",
       "type": "string",
       "enum": ["short", "iso"],
-      "description": "The date format to use",
       "default": "iso"
     },
     "showTimestamp": {
-      "type": "boolean",
       "description": "Whether to prepend a timestamp to each log message",
+      "type": "boolean",
       "default": true
     }
   }
