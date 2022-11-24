@@ -10,7 +10,7 @@
     },
     "mute": {
       "description": "Whether to mute log messages",
-      "type": ["string","boolean"],
+      "type": ["boolean","string"],
       "default": false
     },
     "dateFormat": {
