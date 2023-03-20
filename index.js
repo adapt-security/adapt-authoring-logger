@@ -1,5 +1,5 @@
-/** 
+/**
  * Logging utility
  * @namespace logger
  */
-export { default } from './lib/LoggerModule.js';
+export { default } from './lib/LoggerModule.js'
