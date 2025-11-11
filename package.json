@@ -6,7 +6,7 @@
   "license": "GPL-3.0",
   "type": "module",
   "main": "index.js",
-  "repository": "adaptlearning/adapt-authoring-logger",
+  "repository": "adapt-security/adapt-authoring-logger",
   "dependencies": {
     "chalk": "^5.3.0"
   },
