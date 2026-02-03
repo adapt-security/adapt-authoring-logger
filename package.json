@@ -1,6 +1,6 @@
 {
   "name": "adapt-authoring-logger",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Basic logger for the Adapt authoring tool",
   "homepage": "https://github.com/adapt-security/adapt-authoring-logger",
   "license": "GPL-3.0",
