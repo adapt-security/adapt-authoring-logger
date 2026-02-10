@@ -1,10 +1,10 @@
-import assert from 'assert'
 import { describe, it, beforeEach, afterEach } from 'node:test'
+import assert from 'node:assert/strict'
 import chalk from 'chalk'
 import LoggerModule from '../lib/LoggerModule.js'
 
 describe('LoggerModule', () => {
-  describe('colourise()', () => {
+  describe('#colourise()', () => {
     it('should return string with colour function applied', () => {
       const result = LoggerModule.colourise('test', chalk.red)
       assert.ok(result.includes('test'))
@@ -17,20 +17,20 @@ describe('LoggerModule', () => {
 
     it('should return uncoloured string if no colour function provided', () => {
       const result = LoggerModule.colourise('test', null)
-      assert.strictEqual(result, 'test')
+      assert.equal(result, 'test')
     })
 
     it('should handle undefined colour function', () => {
       const result = LoggerModule.colourise('test', undefined)
-      assert.strictEqual(result, 'test')
+      assert.equal(result, 'test')
     })
   })
 
-  describe('getDateStamp()', () => {
+  describe('#getDateStamp()', () => {
     it('should return empty string when timestamp is disabled', () => {
       const config = { timestamp: false }
       const result = LoggerModule.getDateStamp(config)
-      assert.strictEqual(result, '')
+      assert.equal(result, '')
     })
 
     it('should return ISO format date when dateFormat is "iso"', () => {
@@ -46,7 +46,7 @@ describe('LoggerModule', () => {
     })
   })
 
-  describe('isLevelEnabled()', () => {
+  describe('#isLevelEnabled()', () => {
     let logger
 
     beforeEach(() => {
@@ -55,28 +55,28 @@ describe('LoggerModule', () => {
     })
 
     it('should return true for enabled levels', () => {
-      assert.strictEqual(logger.isLevelEnabled('error'), true)
-      assert.strictEqual(logger.isLevelEnabled('warn'), true)
-      assert.strictEqual(logger.isLevelEnabled('info'), true)
+      assert.equal(logger.isLevelEnabled('error'), true)
+      assert.equal(logger.isLevelEnabled('warn'), true)
+      assert.equal(logger.isLevelEnabled('info'), true)
     })
 
     it('should return false for disabled levels', () => {
-      assert.strictEqual(logger.isLevelEnabled('debug'), false)
-      assert.strictEqual(logger.isLevelEnabled('verbose'), false)
+      assert.equal(logger.isLevelEnabled('debug'), false)
+      assert.equal(logger.isLevelEnabled('verbose'), false)
     })
 
     it('should return false when level is explicitly disabled', () => {
       logger.levelsConfig = ['error', '!warn', 'info']
-      assert.strictEqual(logger.isLevelEnabled('warn'), false)
+      assert.equal(logger.isLevelEnabled('warn'), false)
     })
 
     it('should give preference to explicit disable', () => {
       logger.levelsConfig = ['warn', '!warn']
-      assert.strictEqual(logger.isLevelEnabled('warn'), false)
+      assert.equal(logger.isLevelEnabled('warn'), false)
     })
   })
 
-  describe('getModuleOverrides()', () => {
+  describe('#getModuleOverrides()', () => {
     let logger
 
     beforeEach(() => {
@@ -88,7 +88,7 @@ describe('LoggerModule', () => {
       const result = logger.getModuleOverrides('error')
       assert.ok(result.includes('error.myModule'))
       assert.ok(result.includes('error.anotherModule'))
-      assert.strictEqual(result.length, 2)
+      assert.equal(result.length, 2)
     })
 
     it('should include negative overrides', () => {
@@ -100,7 +100,7 @@ describe('LoggerModule', () => {
     it('should return empty array when no overrides exist', () => {
       logger.levelsConfig = ['error', 'warn']
       const result = logger.getModuleOverrides('info')
-      assert.strictEqual(result.length, 0)
+      assert.equal(result.length, 0)
     })
 
     it('should not include overrides for other levels', () => {
@@ -110,7 +110,7 @@ describe('LoggerModule', () => {
     })
   })
 
-  describe('isLoggingEnabled()', () => {
+  describe('#isLoggingEnabled()', () => {
     let logger
 
     beforeEach(() => {
@@ -125,31 +125,31 @@ describe('LoggerModule', () => {
     })
 
     it('should return true for enabled levels', () => {
-      assert.strictEqual(logger.isLoggingEnabled('error', 'anyId'), true)
+      assert.equal(logger.isLoggingEnabled('error', 'anyId'), true)
     })
 
     it('should return false for disabled levels without overrides', () => {
-      assert.strictEqual(logger.isLoggingEnabled('warn', 'generic'), false)
+      assert.equal(logger.isLoggingEnabled('warn', 'generic'), false)
     })
 
     it('should return true for disabled level with positive override', () => {
-      assert.strictEqual(logger.isLoggingEnabled('warn', 'specific'), true)
+      assert.equal(logger.isLoggingEnabled('warn', 'specific'), true)
     })
 
     it('should return false for enabled level with negative override', () => {
-      assert.strictEqual(logger.isLoggingEnabled('info', 'blocked'), false)
+      assert.equal(logger.isLoggingEnabled('info', 'blocked'), false)
     })
 
     it('should return true for enabled level without override', () => {
-      assert.strictEqual(logger.isLoggingEnabled('info', 'allowed'), true)
+      assert.equal(logger.isLoggingEnabled('info', 'allowed'), true)
     })
 
     it('should handle missing level config gracefully', () => {
-      assert.strictEqual(logger.isLoggingEnabled('nonexistent', 'id'), false)
+      assert.equal(logger.isLoggingEnabled('nonexistent', 'id'), false)
     })
   })
 
-  describe('log()', () => {
+  describe('#log()', () => {
     let logger
     let logOutput
     let originalConsoleLog
@@ -184,24 +184,24 @@ describe('LoggerModule', () => {
     it('should not log when muted', () => {
       logger.config.mute = true
       logger.log('info', 'test', 'message')
-      assert.strictEqual(logOutput.length, 0)
+      assert.equal(logOutput.length, 0)
     })
 
     it('should not log when level is disabled', () => {
       logger.config.levels.debug.enable = false
       logger.log('debug', 'test', 'message')
-      assert.strictEqual(logOutput.length, 0)
+      assert.equal(logOutput.length, 0)
     })
 
     it('should log message when enabled', () => {
       logger.log('info', 'testId', 'test message')
-      assert.strictEqual(logOutput.length, 1)
+      assert.equal(logOutput.length, 1)
       assert.ok(logOutput[0].args.some(arg => typeof arg === 'string' && arg.includes('testId')))
     })
 
     it('should include multiple arguments', () => {
       logger.log('info', 'test', 'arg1', 'arg2', 'arg3')
-      assert.strictEqual(logOutput.length, 1)
+      assert.equal(logOutput.length, 1)
       const args = logOutput[0].args
       assert.ok(args.includes('arg1'))
       assert.ok(args.includes('arg2'))
@@ -210,7 +210,7 @@ describe('LoggerModule', () => {
 
     it('should use correct console method for level', () => {
       logger.log('error', 'test', 'message')
-      assert.strictEqual(logOutput[0].level, 'error')
+      assert.equal(logOutput[0].level, 'error')
     })
 
     it('should invoke logHook with correct parameters', () => {
@@ -220,20 +220,20 @@ describe('LoggerModule', () => {
       }
       logger.log('info', 'testId', 'message')
       assert.ok(hookArgs)
-      assert.strictEqual(hookArgs[1], 'info')
-      assert.strictEqual(hookArgs[2], 'testId')
-      assert.strictEqual(hookArgs[3], 'message')
+      assert.equal(hookArgs[1], 'info')
+      assert.equal(hookArgs[2], 'testId')
+      assert.equal(hookArgs[3], 'message')
     })
 
     it('should colorise level in output', () => {
       logger.log('info', 'test', 'message')
-      assert.strictEqual(logOutput.length, 1)
+      assert.equal(logOutput.length, 1)
       assert.ok(logOutput[0].args[0].includes('info'))
     })
 
     it('should colorise id in output', () => {
       logger.log('info', 'myModule', 'message')
-      assert.strictEqual(logOutput.length, 1)
+      assert.equal(logOutput.length, 1)
       assert.ok(logOutput[0].args[0].includes('myModule'))
     })
   })

@@ -39,6 +39,6 @@
     ]
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test tests/*.spec.js"
   }
 }
