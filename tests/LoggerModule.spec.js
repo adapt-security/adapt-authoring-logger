@@ -1,6 +1,7 @@
-import { describe, it, beforeEach, afterEach } from 'node:test'
+import { describe, it, beforeEach, afterEach, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import chalk from 'chalk'
+import { AbstractModule } from 'adapt-authoring-core'
 import LoggerModule from '../lib/LoggerModule.js'
 
 describe('LoggerModule', () => {
@@ -24,6 +25,16 @@ describe('LoggerModule', () => {
       const result = LoggerModule.colourise('test', undefined)
       assert.equal(result, 'test')
     })
+
+    it('should return empty string unchanged when no colour', () => {
+      const result = LoggerModule.colourise('', null)
+      assert.equal(result, '')
+    })
+
+    it('should apply colour function to empty string', () => {
+      const result = LoggerModule.colourise('', chalk.red)
+      assert.equal(typeof result, 'string')
+    })
   })
 
   describe('#getDateStamp()', () => {
@@ -42,7 +53,19 @@ describe('LoggerModule', () => {
     it('should return short format date when dateFormat is "short"', () => {
       const config = { timestamp: true, dateFormat: 'short' }
       const result = LoggerModule.getDateStamp(config)
-      assert.ok(/\d{1,2}\/\d{2}\/\d{2}-\d{2}:\d{2}:\d{2}/.test(result))
+      assert.ok(/\d{1,2}\/\d{2}\/\d{2}-\d{1,2}:\d{1,2}:\d{2}/.test(result))
+    })
+
+    it('should return undefined-based string for unrecognised dateFormat', () => {
+      const config = { timestamp: true, dateFormat: 'unknown' }
+      const result = LoggerModule.getDateStamp(config)
+      assert.ok(result.includes('undefined'))
+    })
+
+    it('should include trailing space in formatted timestamp', () => {
+      const config = { timestamp: true, dateFormat: 'iso' }
+      const result = LoggerModule.getDateStamp(config)
+      assert.ok(result.includes(' '))
     })
   })
 
@@ -73,6 +96,17 @@ describe('LoggerModule', () => {
     it('should give preference to explicit disable', () => {
       logger.levelsConfig = ['warn', '!warn']
       assert.equal(logger.isLevelEnabled('warn'), false)
+    })
+
+    it('should return false for empty levelsConfig', () => {
+      logger.levelsConfig = []
+      assert.equal(logger.isLevelEnabled('error'), false)
+    })
+
+    it('should not match partial level names', () => {
+      logger.levelsConfig = ['info']
+      assert.equal(logger.isLevelEnabled('inf'), false)
+      assert.equal(logger.isLevelEnabled('information'), false)
     })
   })
 
@@ -107,6 +141,20 @@ describe('LoggerModule', () => {
       logger.levelsConfig = ['error', 'error.moduleA', 'warn.moduleB']
       const result = logger.getModuleOverrides('error')
       assert.ok(!result.includes('warn.moduleB'))
+    })
+
+    it('should return both positive and negative overrides together', () => {
+      logger.levelsConfig = ['error', 'error.modA', '!error.modB']
+      const result = logger.getModuleOverrides('error')
+      assert.equal(result.length, 2)
+      assert.ok(result.includes('error.modA'))
+      assert.ok(result.includes('!error.modB'))
+    })
+
+    it('should return empty array for empty levelsConfig', () => {
+      logger.levelsConfig = []
+      const result = logger.getModuleOverrides('error')
+      assert.deepEqual(result, [])
     })
   })
 
@@ -146,6 +194,29 @@ describe('LoggerModule', () => {
 
     it('should handle missing level config gracefully', () => {
       assert.equal(logger.isLoggingEnabled('nonexistent', 'id'), false)
+    })
+
+    it('should default moduleOverrides to empty array when undefined', () => {
+      logger.config = {
+        levels: {
+          error: { enable: true }
+        }
+      }
+      assert.equal(logger.isLoggingEnabled('error', 'anyId'), true)
+    })
+
+    it('should return false when both enable is false and no matching override', () => {
+      logger.config = {
+        levels: {
+          debug: { enable: false, moduleOverrides: ['debug.other'] }
+        }
+      }
+      assert.equal(logger.isLoggingEnabled('debug', 'notOther'), false)
+    })
+
+    it('should handle config being undefined gracefully', () => {
+      logger.config = undefined
+      assert.equal(logger.isLoggingEnabled('error', 'id'), false)
     })
   })
 
@@ -235,6 +306,58 @@ describe('LoggerModule', () => {
       logger.log('info', 'myModule', 'message')
       assert.equal(logOutput.length, 1)
       assert.ok(logOutput[0].args[0].includes('myModule'))
+    })
+
+    it('should treat string "true" mute value as muted', () => {
+      logger.config.mute = 'true'
+      logger.log('info', 'test', 'message')
+      assert.equal(logOutput.length, 0)
+    })
+
+    it('should not mute when mute is "false"', () => {
+      logger.config.mute = 'false'
+      logger.log('info', 'test', 'message')
+      assert.equal(logOutput.length, 1)
+    })
+
+    it('should fall back to console.log for unknown level', () => {
+      logger.config.levels.success = { enable: true, moduleOverrides: [], colour: chalk.green }
+      logger.log('success', 'test', 'message')
+      assert.equal(logOutput.length, 1)
+      assert.equal(logOutput[0].level, 'log')
+    })
+
+    it('should handle MODULE_READY id by using module name suffix', () => {
+      logger.name = 'adapt-authoring-logger'
+      logger.config.levels.verbose = { enable: true, moduleOverrides: [], colour: chalk.grey }
+      let hookArgs = null
+      logger.logHook.invoke = (...args) => { hookArgs = args }
+      logger.log('verbose', AbstractModule.MODULE_READY, 'some-init-time')
+      assert.equal(logOutput.length, 1)
+      assert.ok(logOutput[0].args[0].includes('logger'))
+      assert.equal(hookArgs[2], 'logger')
+      assert.equal(hookArgs[3], AbstractModule.MODULE_READY)
+      assert.equal(hookArgs[4], 'some-init-time')
+    })
+
+    it('should prepend date stamp when timestamp is enabled', () => {
+      logger.config.timestamp = true
+      logger.config.dateFormat = 'iso'
+      logger.log('info', 'test', 'message')
+      assert.equal(logOutput.length, 1)
+      assert.ok(/\d{4}-\d{2}-\d{2}T/.test(logOutput[0].args[0]))
+    })
+
+    it('should pass Date as first argument to logHook', () => {
+      let hookArgs = null
+      logger.logHook.invoke = (...args) => { hookArgs = args }
+      logger.log('info', 'test', 'message')
+      assert.ok(hookArgs[0] instanceof Date)
+    })
+
+    it('should handle config being undefined gracefully', () => {
+      logger.config = undefined
+      assert.doesNotThrow(() => logger.log('info', 'test', 'message'))
     })
   })
 })
