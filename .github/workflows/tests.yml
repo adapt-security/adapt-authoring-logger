@@ -1,8 +1,10 @@
-name: Run test scripts
+name: Tests
 on: push
 jobs:
   default:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
