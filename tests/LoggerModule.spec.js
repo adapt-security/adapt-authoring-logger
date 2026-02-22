@@ -3,220 +3,191 @@ import assert from 'node:assert/strict'
 import chalk from 'chalk'
 import { AbstractModule } from 'adapt-authoring-core'
 import LoggerModule from '../lib/LoggerModule.js'
+import { colourise, getDateStamp, isLevelEnabled, getModuleOverrides, isLoggingEnabled } from '../lib/utils.js'
 
 describe('LoggerModule', () => {
-  describe('#colourise()', () => {
+  describe('colourise()', () => {
     it('should return string with colour function applied', () => {
-      const result = LoggerModule.colourise('test', chalk.red)
+      const result = colourise('test', chalk.red)
       assert.ok(result.includes('test'))
     })
 
     it('should accept colour name as string', () => {
-      const result = LoggerModule.colourise('test', 'green')
+      const result = colourise('test', 'green')
       assert.ok(result.includes('test'))
     })
 
     it('should return uncoloured string if no colour function provided', () => {
-      const result = LoggerModule.colourise('test', null)
+      const result = colourise('test', null)
       assert.equal(result, 'test')
     })
 
     it('should handle undefined colour function', () => {
-      const result = LoggerModule.colourise('test', undefined)
+      const result = colourise('test', undefined)
       assert.equal(result, 'test')
     })
 
     it('should return empty string unchanged when no colour', () => {
-      const result = LoggerModule.colourise('', null)
+      const result = colourise('', null)
       assert.equal(result, '')
     })
 
     it('should apply colour function to empty string', () => {
-      const result = LoggerModule.colourise('', chalk.red)
+      const result = colourise('', chalk.red)
       assert.equal(typeof result, 'string')
     })
   })
 
-  describe('#getDateStamp()', () => {
+  describe('getDateStamp()', () => {
     it('should return empty string when timestamp is disabled', () => {
       const config = { timestamp: false }
-      const result = LoggerModule.getDateStamp(config)
+      const result = getDateStamp(config)
       assert.equal(result, '')
     })
 
     it('should return ISO format date when dateFormat is "iso"', () => {
       const config = { timestamp: true, dateFormat: 'iso' }
-      const result = LoggerModule.getDateStamp(config)
+      const result = getDateStamp(config)
       assert.ok(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(result))
     })
 
     it('should return short format date when dateFormat is "short"', () => {
       const config = { timestamp: true, dateFormat: 'short' }
-      const result = LoggerModule.getDateStamp(config)
+      const result = getDateStamp(config)
       assert.ok(/\d{1,2}\/\d{2}\/\d{2}-\d{1,2}:\d{1,2}:\d{2}/.test(result))
     })
 
     it('should return undefined-based string for unrecognised dateFormat', () => {
       const config = { timestamp: true, dateFormat: 'unknown' }
-      const result = LoggerModule.getDateStamp(config)
+      const result = getDateStamp(config)
       assert.ok(result.includes('undefined'))
     })
 
     it('should include trailing space in formatted timestamp', () => {
       const config = { timestamp: true, dateFormat: 'iso' }
-      const result = LoggerModule.getDateStamp(config)
+      const result = getDateStamp(config)
       assert.ok(result.includes(' '))
     })
   })
 
-  describe('#isLevelEnabled()', () => {
-    let logger
-
-    beforeEach(() => {
-      logger = new LoggerModule('test-logger')
-      logger.levelsConfig = ['error', 'warn', 'info']
-    })
-
+  describe('isLevelEnabled()', () => {
     it('should return true for enabled levels', () => {
-      assert.equal(logger.isLevelEnabled('error'), true)
-      assert.equal(logger.isLevelEnabled('warn'), true)
-      assert.equal(logger.isLevelEnabled('info'), true)
+      const levelsConfig = ['error', 'warn', 'info']
+      assert.equal(isLevelEnabled(levelsConfig, 'error'), true)
+      assert.equal(isLevelEnabled(levelsConfig, 'warn'), true)
+      assert.equal(isLevelEnabled(levelsConfig, 'info'), true)
     })
 
     it('should return false for disabled levels', () => {
-      assert.equal(logger.isLevelEnabled('debug'), false)
-      assert.equal(logger.isLevelEnabled('verbose'), false)
+      const levelsConfig = ['error', 'warn', 'info']
+      assert.equal(isLevelEnabled(levelsConfig, 'debug'), false)
+      assert.equal(isLevelEnabled(levelsConfig, 'verbose'), false)
     })
 
     it('should return false when level is explicitly disabled', () => {
-      logger.levelsConfig = ['error', '!warn', 'info']
-      assert.equal(logger.isLevelEnabled('warn'), false)
+      const levelsConfig = ['error', '!warn', 'info']
+      assert.equal(isLevelEnabled(levelsConfig, 'warn'), false)
     })
 
     it('should give preference to explicit disable', () => {
-      logger.levelsConfig = ['warn', '!warn']
-      assert.equal(logger.isLevelEnabled('warn'), false)
+      const levelsConfig = ['warn', '!warn']
+      assert.equal(isLevelEnabled(levelsConfig, 'warn'), false)
     })
 
     it('should return false for empty levelsConfig', () => {
-      logger.levelsConfig = []
-      assert.equal(logger.isLevelEnabled('error'), false)
+      assert.equal(isLevelEnabled([], 'error'), false)
     })
 
     it('should not match partial level names', () => {
-      logger.levelsConfig = ['info']
-      assert.equal(logger.isLevelEnabled('inf'), false)
-      assert.equal(logger.isLevelEnabled('information'), false)
+      const levelsConfig = ['info']
+      assert.equal(isLevelEnabled(levelsConfig, 'inf'), false)
+      assert.equal(isLevelEnabled(levelsConfig, 'information'), false)
     })
   })
 
-  describe('#getModuleOverrides()', () => {
-    let logger
-
-    beforeEach(() => {
-      logger = new LoggerModule('test-logger')
-    })
-
+  describe('getModuleOverrides()', () => {
     it('should return module-specific overrides for a level', () => {
-      logger.levelsConfig = ['error', 'error.myModule', 'error.anotherModule', 'warn']
-      const result = logger.getModuleOverrides('error')
+      const levelsConfig = ['error', 'error.myModule', 'error.anotherModule', 'warn']
+      const result = getModuleOverrides(levelsConfig, 'error')
       assert.ok(result.includes('error.myModule'))
       assert.ok(result.includes('error.anotherModule'))
       assert.equal(result.length, 2)
     })
 
     it('should include negative overrides', () => {
-      logger.levelsConfig = ['error', '!error.myModule']
-      const result = logger.getModuleOverrides('error')
+      const levelsConfig = ['error', '!error.myModule']
+      const result = getModuleOverrides(levelsConfig, 'error')
       assert.ok(result.includes('!error.myModule'))
     })
 
     it('should return empty array when no overrides exist', () => {
-      logger.levelsConfig = ['error', 'warn']
-      const result = logger.getModuleOverrides('info')
+      const levelsConfig = ['error', 'warn']
+      const result = getModuleOverrides(levelsConfig, 'info')
       assert.equal(result.length, 0)
     })
 
     it('should not include overrides for other levels', () => {
-      logger.levelsConfig = ['error', 'error.moduleA', 'warn.moduleB']
-      const result = logger.getModuleOverrides('error')
+      const levelsConfig = ['error', 'error.moduleA', 'warn.moduleB']
+      const result = getModuleOverrides(levelsConfig, 'error')
       assert.ok(!result.includes('warn.moduleB'))
     })
 
     it('should return both positive and negative overrides together', () => {
-      logger.levelsConfig = ['error', 'error.modA', '!error.modB']
-      const result = logger.getModuleOverrides('error')
+      const levelsConfig = ['error', 'error.modA', '!error.modB']
+      const result = getModuleOverrides(levelsConfig, 'error')
       assert.equal(result.length, 2)
       assert.ok(result.includes('error.modA'))
       assert.ok(result.includes('!error.modB'))
     })
 
     it('should return empty array for empty levelsConfig', () => {
-      logger.levelsConfig = []
-      const result = logger.getModuleOverrides('error')
-      assert.deepEqual(result, [])
+      assert.deepEqual(getModuleOverrides([], 'error'), [])
     })
   })
 
-  describe('#isLoggingEnabled()', () => {
-    let logger
-
-    beforeEach(() => {
-      logger = new LoggerModule('test-logger')
-      logger.config = {
-        levels: {
-          error: { enable: true, moduleOverrides: [] },
-          warn: { enable: false, moduleOverrides: ['warn.specific'] },
-          info: { enable: true, moduleOverrides: ['!info.blocked'] }
-        }
-      }
-    })
-
+  describe('isLoggingEnabled()', () => {
     it('should return true for enabled levels', () => {
-      assert.equal(logger.isLoggingEnabled('error', 'anyId'), true)
+      const levels = { error: { enable: true, moduleOverrides: [] } }
+      assert.equal(isLoggingEnabled(levels, 'error', 'anyId'), true)
     })
 
     it('should return false for disabled levels without overrides', () => {
-      assert.equal(logger.isLoggingEnabled('warn', 'generic'), false)
+      const levels = { warn: { enable: false, moduleOverrides: ['warn.specific'] } }
+      assert.equal(isLoggingEnabled(levels, 'warn', 'generic'), false)
     })
 
     it('should return true for disabled level with positive override', () => {
-      assert.equal(logger.isLoggingEnabled('warn', 'specific'), true)
+      const levels = { warn: { enable: false, moduleOverrides: ['warn.specific'] } }
+      assert.equal(isLoggingEnabled(levels, 'warn', 'specific'), true)
     })
 
     it('should return false for enabled level with negative override', () => {
-      assert.equal(logger.isLoggingEnabled('info', 'blocked'), false)
+      const levels = { info: { enable: true, moduleOverrides: ['!info.blocked'] } }
+      assert.equal(isLoggingEnabled(levels, 'info', 'blocked'), false)
     })
 
     it('should return true for enabled level without override', () => {
-      assert.equal(logger.isLoggingEnabled('info', 'allowed'), true)
+      const levels = { info: { enable: true, moduleOverrides: ['!info.blocked'] } }
+      assert.equal(isLoggingEnabled(levels, 'info', 'allowed'), true)
     })
 
     it('should handle missing level config gracefully', () => {
-      assert.equal(logger.isLoggingEnabled('nonexistent', 'id'), false)
+      const levels = { error: { enable: true, moduleOverrides: [] } }
+      assert.equal(isLoggingEnabled(levels, 'nonexistent', 'id'), false)
     })
 
     it('should default moduleOverrides to empty array when undefined', () => {
-      logger.config = {
-        levels: {
-          error: { enable: true }
-        }
-      }
-      assert.equal(logger.isLoggingEnabled('error', 'anyId'), true)
+      const levels = { error: { enable: true } }
+      assert.equal(isLoggingEnabled(levels, 'error', 'anyId'), true)
     })
 
     it('should return false when both enable is false and no matching override', () => {
-      logger.config = {
-        levels: {
-          debug: { enable: false, moduleOverrides: ['debug.other'] }
-        }
-      }
-      assert.equal(logger.isLoggingEnabled('debug', 'notOther'), false)
+      const levels = { debug: { enable: false, moduleOverrides: ['debug.other'] } }
+      assert.equal(isLoggingEnabled(levels, 'debug', 'notOther'), false)
     })
 
     it('should handle config being undefined gracefully', () => {
-      logger.config = undefined
-      assert.equal(logger.isLoggingEnabled('error', 'id'), false)
+      assert.equal(isLoggingEnabled(undefined, 'error', 'id'), false)
     })
   })
 
