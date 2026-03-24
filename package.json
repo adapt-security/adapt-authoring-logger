@@ -6,7 +6,7 @@
   "license": "GPL-3.0",
   "type": "module",
   "main": "index.js",
-  "repository": "github:adapt-security/adapt-authoring-logger",
+  "repository": "adapt-security/adapt-authoring-logger",
   "dependencies": {
     "adapt-authoring-core": "^2.0.0",
     "chalk": "^5.3.0"
@@ -15,37 +15,11 @@
     "adapt-authoring-config": "^1.1.4"
   },
   "devDependencies": {
-    "@semantic-release/git": "^10.0.1",
-    "conventional-changelog-eslint": "^6.0.0",
-    "semantic-release": "^25.0.2",
+    "@adaptlearning/semantic-release-config": "^1.0.0",
     "standard": "^17.1.0"
   },
   "release": {
-    "plugins": [
-      [
-        "@semantic-release/commit-analyzer",
-        {
-          "preset": "eslint"
-        }
-      ],
-      [
-        "@semantic-release/release-notes-generator",
-        {
-          "preset": "eslint"
-        }
-      ],
-      "@semantic-release/npm",
-      "@semantic-release/github",
-      [
-        "@semantic-release/git",
-        {
-          "assets": [
-            "package.json"
-          ],
-          "message": "Chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-        }
-      ]
-    ]
+    "extends": "@adaptlearning/semantic-release-config"
   },
   "scripts": {
     "test": "node --test tests/*.spec.js"
